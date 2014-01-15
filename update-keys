@@ -1,0 +1,75 @@
+#!/bin/bash
+
+export LANG=C
+
+TMPDIR=$(mktemp -d)
+trap "rm -rf '${TMPDIR}'" EXIT
+
+KEYSERVER='hkp://pgp.mit.edu'
+GPG="gpg --quiet --batch --no-tty --no-permission-warning --keyserver "${KEYSERVER}" --homedir ${TMPDIR}"
+
+pushd "$(dirname "$0")" >/dev/null
+
+$GPG --gen-key <<EOF
+%echo Generating BlackArch Linux Keyring keychain master key...
+Key-Type: RSA
+Key-Length: 1024
+Key-Usage: sign
+Name-Real: BlackArch Linux Keyring Keychain Master Key
+Name-Email: blackarchlinux-keyring@localhost
+Expire-Date: 0
+%commit
+%echo Done
+EOF
+
+rm -rf master packager packager-revoked blackarchlinux-trusted blackarchlinux-revoked
+mkdir master packager packager-revoked
+
+while read -ra data; do
+	keyid="${data[0]}"
+	username="${data[@]:1}"
+	printf 'getting master key for %s\n' "$username" >&2
+	${GPG} --recv-keys ${keyid} &>/dev/null
+	printf 'minimize\nquit\ny\n' | \
+		${GPG} --command-fd 0 --edit-key ${keyid}
+	${GPG} --yes --lsign-key ${keyid} &>/dev/null
+	${GPG} --armor --no-emit-version --export ${keyid} >> master/${username}.asc
+	echo "${keyid}:4:" >> blackarchlinux-trusted
+done < master-keyids
+${GPG} --import-ownertrust < blackarchlinux-trusted 2>/dev/null
+
+while read -ra data; do
+	keyid="${data[0]}"
+	${GPG} --recv-keys ${keyid} &>/dev/null
+done < packager-keyids
+while read -ra data; do
+	keyid="${data[0]}"
+	username="${data[@]:1}"
+	printf 'getting packager key for %s\n' "$username" >&2
+	printf 'clean\nquit\ny\n' | \
+		${GPG} --command-fd 0 --edit-key ${keyid}
+	if ! ${GPG} --list-keys --with-colons ${keyid} 2>/dev/null | grep -q '^pub:f:'; then
+		echo "key is not fully trusted: ${keyid} ${username}"
+	else
+		${GPG} --armor --no-emit-version --export ${keyid} >> packager/${username}.asc
+	fi
+done < packager-keyids
+
+while read -ra data; do
+	keyid="${data[0]}"
+	username="${data[1]}"
+	printf 'getting revoked key for %s\n' "$username" >&2
+	${GPG} --recv-keys ${keyid} &>/dev/null
+	printf 'clean\nquit\ny\n' | \
+		${GPG} --command-fd 0 --edit-key ${keyid}
+	if ! ${GPG} --list-keys --with-colons ${keyid} 2>/dev/null | grep -q '^pub:f:'; then
+		${GPG} --armor --no-emit-version --export ${keyid} >> packager-revoked/${username}.asc
+		echo "${keyid}" >> blackarchlinux-revoked
+	else
+		echo "key is still fully trusted: ${keyid} ${username}"
+	fi
+done < packager-revoked-keyids
+
+cat master/*.asc packager/*.asc packager-revoked/*.asc > blackarchlinux.gpg
+
+popd >/dev/null

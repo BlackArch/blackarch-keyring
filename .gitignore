@@ -1,0 +1,6 @@
+*~
+blackarchlinux-keyring-*.tar.gz
+blackarchlinux-keyring-*.tar.gz.sig
+master/
+packager/
+blackarchlinux.gpg
