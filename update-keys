@@ -16,13 +16,13 @@ Key-Type: RSA
 Key-Length: 1024
 Key-Usage: sign
 Name-Real: BlackArch Linux Keyring Keychain Master Key
-Name-Email: blackarchlinux-keyring@localhost
+Name-Email: blackarch-keyring@localhost
 Expire-Date: 0
 %commit
 %echo Done
 EOF
 
-rm -rf master packager packager-revoked blackarchlinux-trusted blackarchlinux-revoked
+rm -rf master packager packager-revoked blackarch-trusted blackarch-revoked
 mkdir master packager packager-revoked
 
 while read -ra data; do
@@ -34,9 +34,9 @@ while read -ra data; do
 		${GPG} --command-fd 0 --edit-key ${keyid}
 	${GPG} --yes --lsign-key ${keyid} &>/dev/null
 	${GPG} --armor --no-emit-version --export ${keyid} >> master/${username}.asc
-	echo "${keyid}:4:" >> blackarchlinux-trusted
+	echo "${keyid}:4:" >> blackarch-trusted
 done < master-keyids
-${GPG} --import-ownertrust < blackarchlinux-trusted 2>/dev/null
+${GPG} --import-ownertrust < blackarch-trusted 2>/dev/null
 
 while read -ra data; do
 	keyid="${data[0]}"
@@ -64,12 +64,12 @@ while read -ra data; do
 		${GPG} --command-fd 0 --edit-key ${keyid}
 	if ! ${GPG} --list-keys --with-colons ${keyid} 2>/dev/null | grep -q '^pub:f:'; then
 		${GPG} --armor --no-emit-version --export ${keyid} >> packager-revoked/${username}.asc
-		echo "${keyid}" >> blackarchlinux-revoked
+		echo "${keyid}" >> blackarch-revoked
 	else
 		echo "key is still fully trusted: ${keyid} ${username}"
 	fi
 done < packager-revoked-keyids
 
-cat master/*.asc packager/*.asc packager-revoked/*.asc > blackarchlinux.gpg
+cat master/*.asc packager/*.asc packager-revoked/*.asc > blackarch.gpg
 
 popd >/dev/null
