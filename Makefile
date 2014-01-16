@@ -15,6 +15,6 @@ dist:
 	gpg --default-key 1E01F333 --detach-sign --use-agent blackarch-keyring-$(V).tar.gz
 
 upload:
-	scp blackarch-keyring-$(V).tar.gz blackarch-keyring-$(V).tar.gz.sig blackarch.org:/nginx/var/www/keyring/
+	rsync --progress blackarch-keyring-$(V).tar.gz blackarch-keyring-$(V).tar.gz.sig blackarch.org:/nginx/var/www/keyring/
 
 .PHONY: install uninstall dist upload
