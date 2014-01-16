@@ -12,7 +12,7 @@ uninstall:
 
 dist:
 	git archive --format=tar --prefix=blackarch-keyring-$(V)/ $(V) | gzip -9 > blackarch-keyring-$(V).tar.gz
-	gpg --detach-sign --use-agent blackarch-keyring-$(V).tar.gz
+	gpg --default-key 1E01F333 --detach-sign --use-agent blackarch-keyring-$(V).tar.gz
 
 upload:
 	scp blackarch-keyring-$(V).tar.gz blackarch-keyring-$(V).tar.gz.sig blackarch.org:/nginx/var/www/keyring/
