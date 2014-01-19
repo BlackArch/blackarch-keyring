@@ -70,6 +70,8 @@ while read -ra data; do
 	fi
 done < packager-revoked-keyids
 
+touch blackarch-revoked
+
 cat master/*.asc packager/*.asc packager-revoked/*.asc > blackarch.gpg
 
 popd >/dev/null
