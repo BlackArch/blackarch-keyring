@@ -6,7 +6,8 @@ TMPDIR=$(mktemp -d)
 trap "rm -rf '${TMPDIR}'" EXIT
 
 KEYSERVER='hkp://pgp.mit.edu'
-GPG="gpg --quiet --batch --no-tty --no-permission-warning --keyserver "${KEYSERVER}" --homedir ${TMPDIR}"
+GPG="gpg --quiet --batch --no-tty --no-permission-warning --keyserver ${KEYSERVER}"
+#GPG="gpg --quiet --batch --no-tty --no-permission-warning --keyserver "${KEYSERVER}" --homedir ${TMPDIR}"
 
 pushd "$(dirname "$0")" >/dev/null
 
@@ -48,7 +49,7 @@ while read -ra data; do
 	printf 'getting packager key for %s\n' "$username" >&2
 	printf 'clean\nquit\ny\n' | \
 		${GPG} --command-fd 0 --edit-key ${keyid}
-	if ! ${GPG} --list-keys --with-colons ${keyid} 2>/dev/null | grep -q '^pub:f:'; then
+	if ! ${GPG} --list-keys --with-colons ${keyid} 2>/dev/null | grep -q '^pub:u:'; then
 		echo "key is not fully trusted: ${keyid} ${username}"
 	else
 		${GPG} --armor --no-emit-version --export ${keyid} >> packager/${username}.asc
