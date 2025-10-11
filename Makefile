@@ -1,4 +1,4 @@
-V=20180925
+V=20251011
 
 PREFIX = /usr/local
 
@@ -15,6 +15,6 @@ dist:
 	gpg --default-key 2AD93F4E --detach-sign --use-agent blackarch-keyring-$(V).tar.gz
 
 upload:
-	rsync --chmod 644 --progress blackarch-keyring-$(V).tar.gz blackarch-keyring-$(V).tar.gz.sig blackarch.org:/var/www/keyring/
+	rsync --chmod 644 --progress blackarch-keyring-$(V).tar.gz blackarch-keyring-$(V).tar.gz.sig blackarch.org:/var/www/blackarch/keyring/
 
 .PHONY: install uninstall dist upload
