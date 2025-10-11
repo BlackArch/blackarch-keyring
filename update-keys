@@ -5,7 +5,7 @@ export LANG=C
 TMPDIR=$(mktemp -d)
 trap "rm -rf '${TMPDIR}'" EXIT
 
-KEYSERVER='hkp://pgp.mit.edu'
+KEYSERVER='hkp://keyserver.ubuntu.com'
 GPG="gpg --quiet --batch --no-tty --no-permission-warning --keyserver ${KEYSERVER}"
 #GPG="gpg --quiet --batch --no-tty --no-permission-warning --keyserver "${KEYSERVER}" --homedir ${TMPDIR}"
 
